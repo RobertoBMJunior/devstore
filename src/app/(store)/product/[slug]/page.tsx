@@ -1,12 +1,42 @@
+import { api } from '@/data/api'
 import Image from 'next/image'
 
-export default function ProductPage() {
+export interface Product {
+  id: number
+  title: string
+  slug: string
+  price: number
+  image: string
+  description: string
+  featured: boolean
+}
+
+interface ProductProps {
+  params: {
+    slug: string
+  }
+}
+
+async function getProduct(slug: string): Promise<Product> {
+  const response = await api(`/products/${slug}`, {
+    next: {
+      revalidate: 60 * 60,
+    },
+  })
+  const data = await response.json()
+
+  return data
+}
+
+export default async function ProductPage({ params }: ProductProps) {
+  const product = await getProduct(params.slug)
+
   return (
     <div className="relative grid max-h-[860px] grid-cols-3">
       <div className="col-span-2 overflow-hidden">
         <Image
           className="relative hover:scale-105 transition-transform duration-500"
-          src="/camiseta-dowhile-2022.png"
+          src={product.image}
           width={1000}
           height={1000}
           quality={100}
@@ -16,19 +46,26 @@ export default function ProductPage() {
 
       <div className="flex flex-col justify-center px-6 p-4 gap-8">
         <div>
-          <h1 className="text-3xl font-bold leading-tight">
-            Moletom Never Stop Learning
-          </h1>
+          <h1 className="text-3xl font-bold leading-tight">{product.title}</h1>
           <div className="mt-1 leading-relaxed text-zinc-400">
-            Moletom fabricado com 88% de algodão e 12% de poliéster.
+            {product.description}
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <span className="bg-violet-500 px-5 py-3 rounded-3xl font-semibold ">
-            R$ 99
+            {product.price.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 0,
+            })}
           </span>
-          <span className="text-zinc-400">Em 12x s/ juros de R$8,25</span>
+          <span className="text-zinc-400">
+            {(product.price / 12).toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+            })}
+          </span>
         </div>
 
         <div className="">
