@@ -1,4 +1,5 @@
 import { api } from '@/data/api'
+import { Metadata } from 'next'
 import Image from 'next/image'
 
 export interface Product {
@@ -26,6 +27,16 @@ async function getProduct(slug: string): Promise<Product> {
   const data = await response.json()
 
   return data
+}
+
+export async function generateMetadata({
+  params,
+}: ProductProps): Promise<Metadata> {
+  const product = await getProduct(params.slug)
+
+  return {
+    title: product.title,
+  }
 }
 
 export default async function ProductPage({ params }: ProductProps) {
